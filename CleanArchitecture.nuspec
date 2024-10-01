@@ -2,27 +2,25 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
 
-    <id>Clean.Architecture.Solution.Template</id>
+    <id>Clean.Architecture.Solution.Template.Kristian</id>
     <version>8.0.6</version>
-    <title>Clean Architecture Solution Template</title>
+    <title>Clean Architecture Solution Template Kristian</title>
     <authors>JasonTaylorDev</authors>
     <description>Clean Architecture Solution Template for .NET 8.</description>
     <summary>
-      A Clean Architecture Solution Template for creating apps using Angular, React, or Web API only with ASP.NET Core.
+      A Clean Architecture Solution Template for creating apps using Web API only with ASP.NET Core.
     </summary>
     <releaseNotes>
-      📦 Upgraded to Angular 17
-      ✨ Added azd compatibility
+      Kristians full version of production ready template
     </releaseNotes>
 
-    <projectUrl>https://github.com/JasonTaylorDev/CleanArchitecture</projectUrl>
-    <repository type="git" url="https://github.com/JasonTaylorDev/CleanArchitecture.git" branch="main" />
+    <projectUrl>https://github.com/Eftiand/CleanArchitecture-Template/</projectUrl>
+    <repository type="git" url="https://github.com/Eftiand/CleanArchitecture-Template.git" branch="main" />
 
     <license type="expression">MIT</license>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <tags>clean-architecture project template csharp dotnet angular react</tags>
+    <tags>clean-architecture project template csharp dotnet</tags>
     <icon>icon.png</icon>
-    <readme>README.md</readme>
 
     <packageTypes>
       <packageType name="Template" />
@@ -33,7 +31,7 @@
   <files>
     <file src=".template.config\icon.png" />
     <file src="README.md" />
-    <file src=".\**" target="content" exclude="**\node_modules\**;**\bin\**;**\obj\**;.\.vs\**;.\.vscode\**;**\ClientApp\dist\**;**\wwwroot\dist\**;content\Directory.Build.*;.\.git\**;.\.github\workflows\package.yml;.\.github\workflows\codeql.yml;.\.github\workflows\build.yml;.\.github\ISSUE_TEMPLATE\**;.\.github\icon.png;.\.github\FUNDING.md;.\CODE_OF_CONDUCT.md;.\LICENSE;.\README.md;" />
+    <file src=".\**" target="content" exclude=";**\bin\**;**\obj\**;.\.vs\**;.\.vscode\**;content\Directory.Build.*;.\.git\**;.\.github\workflows\package.yml;.\.github\workflows\codeql.yml;.\.github\workflows\build.yml;.\.github\ISSUE_TEMPLATE\**;.\.github\icon.png;.\.github\FUNDING.md;.\CODE_OF_CONDUCT.md;.\LICENSE;.\README.md;" />
   </files>
 
 </package>

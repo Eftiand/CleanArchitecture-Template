@@ -1,19 +1,15 @@
 ﻿using Azure.Identity;
 using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Infrastructure.Data;
+using CleanArchitecture.Web.Middlewares;
 using CleanArchitecture.Web.Services;
 using Microsoft.AspNetCore.Mvc;
-
-#if (UseApiOnly)
-using NSwag;
-using NSwag.Generation.Processors.Security;
-#endif
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddWebServices(this IServiceCollection services)
+    public static IServiceCollection AddWebServices(this IServiceCollection services, WebApplicationBuilder builder)
     {
         services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -24,33 +20,16 @@ public static class DependencyInjection
         services.AddHealthChecks()
             .AddDbContextCheck<ApplicationDbContext>();
 
+        services.AddProblemDetails();
         services.AddExceptionHandler<CustomExceptionHandler>();
-
-        services.AddRazorPages();
+        services.AddExceptionHandler<GlobalExceptionHandler>();
 
         // Customise default API behaviour
         services.Configure<ApiBehaviorOptions>(options =>
             options.SuppressModelStateInvalidFilter = true);
 
         services.AddEndpointsApiExplorer();
-
-        services.AddOpenApiDocument((configure, sp) =>
-        {
-            configure.Title = "CleanArchitecture API";
-
-#if (UseApiOnly)
-            // Add JWT
-            configure.AddSecurity("JWT", Enumerable.Empty<string>(), new OpenApiSecurityScheme
-            {
-                Type = OpenApiSecuritySchemeType.ApiKey,
-                Name = "Authorization",
-                In = OpenApiSecurityApiKeyLocation.Header,
-                Description = "Type into the textbox: Bearer {your JWT token}."
-            });
-
-            configure.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("JWT"));
-#endif
-        });
+        services.AddSwagger(builder);
 
         return services;
     }
@@ -65,6 +44,16 @@ public static class DependencyInjection
                 new DefaultAzureCredential());
         }
 
+        return services;
+    }
+
+    private static IServiceCollection AddSwagger(this IServiceCollection services, WebApplicationBuilder builder)
+    {
+        services.AddSwaggerGen(options =>
+        {
+            options.SwaggerDoc("v1", new() { Title = $"{builder.Environment.ApplicationName} v1", Version = "v1" });
+            options.SwaggerDoc("v2", new() { Title = $"{builder.Environment.ApplicationName} v2", Version = "v2" });
+        });
         return services;
     }
 }

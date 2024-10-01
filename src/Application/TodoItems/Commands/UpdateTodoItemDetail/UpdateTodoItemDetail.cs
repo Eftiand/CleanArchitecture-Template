@@ -1,9 +1,12 @@
 ﻿using CleanArchitecture.Application.Common.Interfaces;
+using CleanArchitecture.Domain.Common;
+using CleanArchitecture.Domain.Entities;
 using CleanArchitecture.Domain.Enums;
+using MassTransit;
 
 namespace CleanArchitecture.Application.TodoItems.Commands.UpdateTodoItemDetail;
 
-public record UpdateTodoItemDetailCommand : IRequest
+public record UpdateTodoItemDetailCommand : BaseCommand<TodoItem>
 {
     public int Id { get; init; }
 
@@ -14,26 +17,19 @@ public record UpdateTodoItemDetailCommand : IRequest
     public string? Note { get; init; }
 }
 
-public class UpdateTodoItemDetailCommandHandler : IRequestHandler<UpdateTodoItemDetailCommand>
+public class UpdateTodoItemDetailCommandHandler(
+    IApplicationDbContext dbContext)
+    : BaseConsumer<UpdateTodoItemDetailCommand>
 {
-    private readonly IApplicationDbContext _context;
-
-    public UpdateTodoItemDetailCommandHandler(IApplicationDbContext context)
+    public override async Task Consume(ConsumeContext<UpdateTodoItemDetailCommand> context)
     {
-        _context = context;
-    }
+        var entity = await dbContext.TodoItems
+            .FindAsync(Message.Id);
 
-    public async Task Handle(UpdateTodoItemDetailCommand request, CancellationToken cancellationToken)
-    {
-        var entity = await _context.TodoItems
-            .FindAsync(new object[] { request.Id }, cancellationToken);
+        Guard.Against.NotFound(Message.Id, entity);
 
-        Guard.Against.NotFound(request.Id, entity);
-
-        entity.ListId = request.ListId;
-        entity.Priority = request.Priority;
-        entity.Note = request.Note;
-
-        await _context.SaveChangesAsync(cancellationToken);
+        entity.ListId = Message.ListId;
+        entity.Priority = PriorityLevel.Medium;
+        entity.Note = Message.Note;
     }
 }

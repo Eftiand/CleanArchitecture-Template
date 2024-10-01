@@ -1,8 +1,11 @@
 ﻿using CleanArchitecture.Application.Common.Interfaces;
+using CleanArchitecture.Domain.Common;
+using CleanArchitecture.Domain.Entities;
+using MassTransit;
 
 namespace CleanArchitecture.Application.TodoItems.Commands.UpdateTodoItem;
 
-public record UpdateTodoItemCommand : IRequest
+public record UpdateTodoItemCommand : BaseCommand<TodoItem>
 {
     public int Id { get; init; }
 
@@ -11,25 +14,18 @@ public record UpdateTodoItemCommand : IRequest
     public bool Done { get; init; }
 }
 
-public class UpdateTodoItemCommandHandler : IRequestHandler<UpdateTodoItemCommand>
+public class UpdateTodoItemCommandHandler(
+    IApplicationDbContext dbContext)
+    : BaseConsumer<UpdateTodoItemCommand>
 {
-    private readonly IApplicationDbContext _context;
-
-    public UpdateTodoItemCommandHandler(IApplicationDbContext context)
+    public override async Task Consume(ConsumeContext<UpdateTodoItemCommand> context)
     {
-        _context = context;
-    }
+        var entity = await dbContext.TodoItems
+            .FindAsync(this.Message.Id);
 
-    public async Task Handle(UpdateTodoItemCommand request, CancellationToken cancellationToken)
-    {
-        var entity = await _context.TodoItems
-            .FindAsync(new object[] { request.Id }, cancellationToken);
+        Guard.Against.NotFound(context.Message.Id, entity);
 
-        Guard.Against.NotFound(request.Id, entity);
-
-        entity.Title = request.Title;
-        entity.Done = request.Done;
-
-        await _context.SaveChangesAsync(cancellationToken);
+        entity.Title = Message.Title;
+        entity.Done = Message.Done;
     }
 }

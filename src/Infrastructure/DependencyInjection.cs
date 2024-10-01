@@ -1,14 +1,22 @@
-﻿using CleanArchitecture.Application.Common.Interfaces;
+﻿using System.Reflection;
+using CleanArchitecture.Application.Common.Behaviours;
+using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Domain.Constants;
 using CleanArchitecture.Infrastructure.Data;
 using CleanArchitecture.Infrastructure.Data.Interceptors;
 using CleanArchitecture.Infrastructure.Identity;
+using Mapster;
+using MassTransit;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog;
+using Shared.Const;
 
-namespace Microsoft.Extensions.DependencyInjection;
+namespace CleanArchitecture.Infrastructure;
 
 public static class DependencyInjection
 {
@@ -25,34 +33,44 @@ public static class DependencyInjection
         {
             options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
 
-#if (UseSQLite)
-            options.UseSqlite(connectionString);
-#else
-            options.UseSqlServer(connectionString);
-#endif
+            options.UseNpgsql(connectionString);
         });
+
 
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
         services.AddScoped<ApplicationDbContextInitialiser>();
 
-#if (UseApiOnly)
         services.AddAuthentication()
             .AddBearerToken(IdentityConstants.BearerScheme);
 
+        services.AddMapster();
+
         services.AddAuthorizationBuilder();
+
+        services.AddMassTransit(config =>
+        {
+            config.SetKebabCaseEndpointNameFormatter();
+            var assembly = Assembly.Load(CommonConstants.Assemblies.Application);
+            config.AddConsumers(assembly);
+
+            config.UsingRabbitMq((context, cfg) =>
+            {
+                cfg.Host("rabbitmq://localhost", h =>
+                {
+                    h.Username("guest");
+                    h.Password("guest");
+                });
+
+                cfg.ConfigureEndpoints(context);
+            });
+        });
 
         services
             .AddIdentityCore<ApplicationUser>()
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddApiEndpoints();
-#else
-        services
-            .AddDefaultIdentity<ApplicationUser>()
-            .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<ApplicationDbContext>();
-#endif
 
         services.AddSingleton(TimeProvider.System);
         services.AddTransient<IIdentityService, IdentityService>();

@@ -1,20 +1,16 @@
-﻿using CleanArchitecture.Domain.Events;
+﻿using CleanArchitecture.Domain.Common;
+using CleanArchitecture.Domain.Events;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 
 namespace CleanArchitecture.Application.TodoItems.EventHandlers;
 
-public class TodoItemCompletedEventHandler : INotificationHandler<TodoItemCompletedEvent>
+public class TodoItemCompletedEventHandler(ILogger<TodoItemCompletedEventHandler> logger)
+    : BaseConsumer<TodoItemCompletedEvent>
 {
-    private readonly ILogger<TodoItemCompletedEventHandler> _logger;
-
-    public TodoItemCompletedEventHandler(ILogger<TodoItemCompletedEventHandler> logger)
+    public override Task Consume(ConsumeContext<TodoItemCompletedEvent> context)
     {
-        _logger = logger;
-    }
-
-    public Task Handle(TodoItemCompletedEvent notification, CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("CleanArchitecture Domain Event: {DomainEvent}", notification.GetType().Name);
+        logger.LogInformation("CleanArchitecture Domain Event: {DomainEvent}", Message.GetType().Name);
 
         return Task.CompletedTask;
     }

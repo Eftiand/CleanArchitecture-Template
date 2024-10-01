@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": ".NET Core Launch (with launchSettings.json)",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/Debug/net5.0/YourProjectName.dll",  // Path to your DLL
+      "args": [],  // Command-line arguments (optional)
+      "cwd": "${workspaceFolder}",  // The current working directory
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "launchSettingsProfile": "ProfileNameGoesHere"  // Specify the profile from launchSettings.json
+    }
+  ]
+}

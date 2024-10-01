@@ -3,7 +3,12 @@ using CleanArchitecture.Application.TodoItems.Commands.CreateTodoItem;
 using CleanArchitecture.Application.TodoItems.Commands.DeleteTodoItem;
 using CleanArchitecture.Application.TodoItems.Commands.UpdateTodoItem;
 using CleanArchitecture.Application.TodoItems.Commands.UpdateTodoItemDetail;
-using CleanArchitecture.Application.TodoItems.Queries.GetTodoItemsWithPagination;
+using CleanArchitecture.Application.TodoItems.Queries;
+using CleanArchitecture.Domain.Entities;
+using MediatR;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Shared.Const;
 
 namespace CleanArchitecture.Web.Endpoints;
 
@@ -12,35 +17,36 @@ public class TodoItems : EndpointGroupBase
     public override void Map(WebApplication app)
     {
         app.MapGroup(this)
-            .RequireAuthorization()
-            .MapGet(GetTodoItemsWithPagination)
             .MapPost(CreateTodoItem)
             .MapPut(UpdateTodoItem, "{id}")
             .MapPut(UpdateTodoItemDetail, "UpdateDetail/{id}")
+            .MapGet(GetTodoItems)
             .MapDelete(DeleteTodoItem, "{id}");
     }
 
-    public Task<PaginatedList<TodoItemBriefDto>> GetTodoItemsWithPagination(ISender sender, [AsParameters] GetTodoItemsWithPaginationQuery query)
+    private static async Task<IResult> GetTodoItems(ISender sender)
     {
-        return sender.Send(query);
+        var result = await sender.Send(new GetAllTodoItemsQuery());
+        return Results.Ok(result);
     }
 
-    public Task<int> CreateTodoItem(ISender sender, CreateTodoItemCommand command)
+    public async Task<IResult> CreateTodoItem(ISender sender, CreateTodoItemCommand command)
     {
-        return sender.Send(command);
+        var result = await sender.Send(command);
+        return Results.Ok(result);
     }
 
-    public async Task<IResult> UpdateTodoItem(ISender sender, int id, UpdateTodoItemCommand command)
+    public async Task<IResult> UpdateTodoItem(int id, UpdateTodoItemCommand command)
     {
         if (id != command.Id) return Results.BadRequest();
-        await sender.Send(command);
-        return Results.NoContent();
+        await Sender.Publish(command);
+        return Results.Ok();
     }
 
-    public async Task<IResult> UpdateTodoItemDetail(ISender sender, int id, UpdateTodoItemDetailCommand command)
+    public async Task<IResult> UpdateTodoItemDetail(int id, UpdateTodoItemDetailCommand command)
     {
         if (id != command.Id) return Results.BadRequest();
-        await sender.Send(command);
+        await Sender.Publish(command);
         return Results.NoContent();
     }
 

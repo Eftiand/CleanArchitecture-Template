@@ -6,7 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MassTransit.Abstractions" />
     <PackageReference Include="MediatR" />
+    <PackageReference Include="MediatR.Contracts" />
   </ItemGroup>
 
 </Project>

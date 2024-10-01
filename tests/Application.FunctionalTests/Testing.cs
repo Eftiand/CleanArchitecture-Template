@@ -1,6 +1,9 @@
-﻿using CleanArchitecture.Domain.Constants;
+﻿using CleanArchitecture.Domain.Common;
+using CleanArchitecture.Domain.Constants;
+using CleanArchitecture.Domain.Messaging;
 using CleanArchitecture.Infrastructure.Data;
 using CleanArchitecture.Infrastructure.Identity;
+using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +14,7 @@ namespace CleanArchitecture.Application.FunctionalTests;
 [SetUpFixture]
 public partial class Testing
 {
-    private static ITestDatabase _database;
+    private static ITestDatabase _database = null!;
     private static CustomWebApplicationFactory _factory = null!;
     private static IServiceScopeFactory _scopeFactory = null!;
     private static string? _userId;
@@ -26,22 +29,23 @@ public partial class Testing
         _scopeFactory = _factory.Services.GetRequiredService<IServiceScopeFactory>();
     }
 
-    public static async Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> request)
+    public static async Task<TResponse> SendAsync<TResponse>(ICommand request) where TResponse : class
     {
         using var scope = _scopeFactory.CreateScope();
 
-        var mediator = scope.ServiceProvider.GetRequiredService<ISender>();
+        var sender = scope.ServiceProvider.GetRequiredService<ISender>();
 
-        return await mediator.Send(request);
+        var response =  await sender.Send(request);
+        return response as TResponse ?? throw new Exception("Response is null");
     }
 
-    public static async Task SendAsync(IBaseRequest request)
+    public static async Task SendAsync(ICommand request)
     {
         using var scope = _scopeFactory.CreateScope();
 
-        var mediator = scope.ServiceProvider.GetRequiredService<ISender>();
+        var sender = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
 
-        await mediator.Send(request);
+        await sender.Publish(request);
     }
 
     public static string? GetUserId()

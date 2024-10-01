@@ -27,6 +27,7 @@ public class CustomExceptionHandler : IExceptionHandler
         if (_exceptionHandlers.ContainsKey(exceptionType))
         {
             await _exceptionHandlers[exceptionType].Invoke(httpContext, exception);
+
             return true;
         }
 
