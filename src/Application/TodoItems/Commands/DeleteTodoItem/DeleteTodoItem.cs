@@ -6,13 +6,13 @@ using MassTransit;
 
 namespace CleanArchitecture.Application.TodoItems.Commands.DeleteTodoItem;
 
-public record DeleteTodoItemCommand(int Id) : BaseCommand<int>;
+public record DeleteTodoItemCommand(Guid Id) : BaseCommand<Guid>;
 
 public class DeleteTodoItemCommandHandler(
     IApplicationDbContext dbContext)
-    : BaseHandler<DeleteTodoItemCommand, int>
+    : BaseHandler<DeleteTodoItemCommand, Guid>
 {
-    public override async Task<int> Handle(DeleteTodoItemCommand request, CancellationToken cancellationToken)
+    public override async Task<Guid> Handle(DeleteTodoItemCommand request, CancellationToken cancellationToken)
     {
         var entity = await dbContext.TodoItems
             .FindAsync(request.Id, cancellationToken);

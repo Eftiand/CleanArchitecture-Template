@@ -35,11 +35,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 .AddDbContext<ApplicationDbContext>((sp, options) =>
                 {
                     options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-#if (UseSQLite)
-                    options.UseSqlite(_connection);
-#else
                     options.UseSqlServer(_connection);
-#endif
                 });
         });
     }

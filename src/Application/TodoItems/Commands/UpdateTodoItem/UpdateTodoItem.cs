@@ -1,13 +1,15 @@
 ﻿using CleanArchitecture.Application.Common.Interfaces;
 using CleanArchitecture.Domain.Common;
 using CleanArchitecture.Domain.Entities;
+using CleanArchitecture.Domain.Exceptions;
+using Mapster;
 using MassTransit;
 
 namespace CleanArchitecture.Application.TodoItems.Commands.UpdateTodoItem;
 
 public record UpdateTodoItemCommand : BaseCommand<TodoItem>
 {
-    public int Id { get; init; }
+    public Guid Id { get; init; }
 
     public string? Title { get; init; }
 
@@ -16,16 +18,20 @@ public record UpdateTodoItemCommand : BaseCommand<TodoItem>
 
 public class UpdateTodoItemCommandHandler(
     IApplicationDbContext dbContext)
-    : BaseConsumer<UpdateTodoItemCommand>
+    : BaseHandler<UpdateTodoItemCommand, TodoItem>
 {
-    public override async Task Consume(ConsumeContext<UpdateTodoItemCommand> context)
+    public override async Task<TodoItem> Handle(UpdateTodoItemCommand request, CancellationToken cancellationToken)
     {
-        var entity = await dbContext.TodoItems
-            .FindAsync(this.Message.Id);
+        var entity = await dbContext.TodoItems.
+            FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
-        Guard.Against.NotFound(context.Message.Id, entity);
+        if (entity is null)
+        {
+            throw CommonExceptions.DomainExceptions.NotFound<TodoItem>();
+        }
 
-        entity.Title = Message.Title;
-        entity.Done = Message.Done;
+        entity.Adapt(request);
+
+        return entity;
     }
 }

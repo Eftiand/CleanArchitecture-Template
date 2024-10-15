@@ -20,7 +20,6 @@ public class CreateTodoItemCommandHandler(IApplicationDbContext dbContext)
     {
         var entity = new TodoItem
         {
-            ListId = request.ListId,
             Title = request.Title,
             Done = false
         };

@@ -51,8 +51,7 @@ public static class DependencyInjection
         services.AddMassTransit(config =>
         {
             config.SetKebabCaseEndpointNameFormatter();
-            var assembly = Assembly.Load(CommonConstants.Assemblies.Application);
-            config.AddConsumers(assembly);
+            config.AddConsumers(Assembly.Load(CommonConstants.Assemblies.Application));
 
             config.UsingRabbitMq((context, cfg) =>
             {

@@ -2,15 +2,15 @@
 using CleanArchitecture.Domain.Common;
 using CleanArchitecture.Domain.Entities;
 using CleanArchitecture.Domain.Enums;
+using Mapster;
 using MassTransit;
+using static CleanArchitecture.Domain.Exceptions.CommonExceptions;
 
 namespace CleanArchitecture.Application.TodoItems.Commands.UpdateTodoItemDetail;
 
 public record UpdateTodoItemDetailCommand : BaseCommand<TodoItem>
 {
-    public int Id { get; init; }
-
-    public int ListId { get; init; }
+    public Guid Id { get; init; }
 
     public PriorityLevel Priority { get; init; }
 
@@ -19,17 +19,20 @@ public record UpdateTodoItemDetailCommand : BaseCommand<TodoItem>
 
 public class UpdateTodoItemDetailCommandHandler(
     IApplicationDbContext dbContext)
-    : BaseConsumer<UpdateTodoItemDetailCommand>
+    : BaseHandler<UpdateTodoItemDetailCommand, TodoItem>
 {
-    public override async Task Consume(ConsumeContext<UpdateTodoItemDetailCommand> context)
+    public override async Task<TodoItem> Handle(UpdateTodoItemDetailCommand request, CancellationToken cancellationToken)
     {
         var entity = await dbContext.TodoItems
-            .FindAsync(Message.Id);
+            .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
-        Guard.Against.NotFound(Message.Id, entity);
+        if (entity is null)
+        {
+            throw DomainExceptions.NotFound<TodoItem>();
+        }
 
-        entity.ListId = Message.ListId;
-        entity.Priority = PriorityLevel.Medium;
-        entity.Note = Message.Note;
+        entity.Adapt(request);
+
+        return entity;
     }
 }
